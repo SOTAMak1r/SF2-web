@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReFo</title>
+    <meta name="description" content="ReFo">
+    <meta name="keywords" content="Video Generation, AI, ReFo">
+    <meta name="theme-color" content="#000000">
+
+    <link rel="icon" type="image/png" href="./figures/logo.png">
+    <link rel="shortcut icon" type="image/png" href="./figures/logo.png">
+    <link rel="apple-touch-icon" href="./figures/logo.png">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <style>
+        /* --- Global Reset & Base --- */
+        :root {
+            --bg-color: #000000;
+            --text-color: #ffffff;
+            --secondary-text: #cccccc;
+            --accent-overlay: rgba(0,0,0,0.5);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: "Times New Roman", Times, serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        *, *:before, *:after { box-sizing: inherit; }
+
+        a { text-decoration: none; color: inherit; transition: color 0.3s; }
+        a:hover { color: #fff; }
+
+        /* --- Layout Utilities --- */
+        .container-fluid { max-width: 1920px; margin: 0 auto; }
+        .content-wrapper { padding: 0 10%; }
+
+        /* --- Hero / Landing Section --- */
+        #hero-section {
+            position: relative;
+            min-height: 100vh;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+            padding-top: 80px;
+            padding-bottom: 60px;
+        }
+
+        .hero-bg-video {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+        }
+
+        .hero-bg-video video {
+            width: 100%; height: 100%; object-fit: cover;
+            opacity: 0.3;
+        }
+
+        .hero-content { position: relative; z-index: 2; }
+
+        h1.project-title { font-size: 90px; font-weight: 300; margin: 20px 0; }
+        h2.project-subtitle {
+            font-size: 2.4rem;
+            font-weight: 400;
+            color: #f7fcf9;
+            margin: 20px 0 40px 0;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .section-header {
+            font-family: 'Alegreya', serif;
+            font-size: 2.0em;
+            background-color: #000;
+            position: sticky;
+            top: 0;
+            padding: 20px 10%;
+            font-weight: 600;
+            z-index: 100;
+            min-height: 60px;
+        }
+
+        .section-desc {
+            padding: 0 10% 20px 10%;
+            color: #999;
+            line-height: 25px;
+            font-weight: 300;
+        }
+
+        /* Authors Area */
+        .author-list { margin: 0 auto 25px auto; width: 80%; font-size: 1.4rem; font-weight: 500; }
+        .author-item { display: inline-block; margin: 0 10px; }
+        .affiliation-list { margin: 0 auto 40px auto; width: 80%; font-size: 16px; }
+
+        /* Buttons */
+        .action-btn {
+            background-color: #ccc;
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 100px;
+            margin: 0 8px 8px 0;
+            display: inline-block;
+            transition: background 0.5s;
+        }
+        .action-btn:hover { background-color: #fff; text-decoration: none; color: #000; }
+
+        /* --- Media Components --- */
+        .rf-card {
+            position: relative;
+            width: 100%;
+            background-color: #1a1a1a;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+        }
+
+        .rf-card video,
+        .rf-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Empty placeholder background */
+        .rf-card.empty::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                repeating-linear-gradient(
+                    45deg,
+                    rgba(255,255,255,0.02),
+                    rgba(255,255,255,0.02) 10px,
+                    rgba(255,255,255,0.04) 10px,
+                    rgba(255,255,255,0.04) 20px
+                );
+        }
+
+        /* Loader */
+        .status-loader {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.6);
+            z-index: 1;
+            font-size: 24px;
+        }
+
+        .meta-badge {
+            position: absolute; right: 10px; bottom: 10px; z-index: 10;
+            background: rgba(0,0,0,0.8); color: #fff;
+            font-size: 10px; padding: 4px 8px; border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+
+        .prompt-overlay {
+            position: absolute; bottom: 10px; left: 10px; z-index: 10;
+            background: rgba(0,0,0,0.5); color: rgba(255,255,255,0.9);
+            font-size: 10px; padding: 5px 10px; border-radius: 15px;
+            backdrop-filter: blur(10px);
+            max-width: calc(100% - 20px);
+            opacity: 0; pointer-events: none; transition: opacity 0.5s;
+        }
+        @media (hover: hover) {
+            .rf-card:hover .prompt-overlay { opacity: 1; pointer-events: auto; }
+        }
+
+        /* --- Comparison Grids --- */
+        .compare-grid {
+            display: grid;
+            gap: 6px;
+            padding: 0 5px;
+            width: 100%;
+        }
+        .compare-grid.cols-5 { grid-template-columns: repeat(5, 1fr); }
+        .compare-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+        /* Header row (method names) */
+        .method-header {
+            text-align: center;
+            font-family: 'Alegreya', serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 10px 6px;
+            color: #fff;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            letter-spacing: 0.5px;
+        }
+
+        .method-header.ours {
+            background: linear-gradient(180deg, rgba(247,252,249,0.18), rgba(247,252,249,0.04));
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.4);
+        }
+
+        /* Optional row label on the left */
+        .compare-row-divider {
+            grid-column: 1 / -1;
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+            margin: 4px 0;
+        }
+
+        /* --- Bento Grid (for Gallery section) --- */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            width: 100%;
+            grid-auto-flow: dense;
+            padding: 0 5px;
+        }
+
+        .bento-grid > .rf-card {
+            width: 100% !important;
+            margin: 0 !important;
+            height: 100%;
+            aspect-ratio: 16/9;
+        }
+
+        .bento-grid > .rf-card video {
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Spanning logic (mirrors VINO bento) */
+        .bento-grid > .rf-card:nth-child(6n + 1) {
+            grid-column: span 2;
+            grid-row: span 2;
+            aspect-ratio: auto;
+        }
+        .bento-grid > .rf-card:nth-child(6n + 6) {
+            grid-column: 2 / span 2;
+            grid-row: span 2;
+            aspect-ratio: auto;
+        }
+        .bento-grid > .rf-card:nth-child(6n + 4),
+        .bento-grid > .rf-card:nth-child(6n + 5) {
+            grid-column: 1;
+        }
+
+        /* --- Footer / BibTeX --- */
+        .footer-section {
+            background-color: #111; padding: 40px 10%; margin-top: 60px;
+            text-align: center; color: #ccc;
+        }
+        .code-block {
+            background: #222; color: #ddd; padding: 20px; border-radius: 10px;
+            text-align: left; display: inline-block; font-family: monospace;
+            max-width: 800px; overflow-x: auto;
+            white-space: pre;
+        }
+
+        section { margin-top: 80px; }
+
+        /* --- Responsive --- */
+        @media (max-width: 1024px) {
+            .bento-grid { grid-template-columns: repeat(2, 1fr); }
+            .bento-grid > .rf-card:nth-child(n) {
+                grid-column: auto;
+                grid-row: auto;
+                aspect-ratio: 16/9;
+            }
+            .compare-grid.cols-5 { grid-template-columns: repeat(5, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            h1.project-title { font-size: 50px; }
+            h2.project-subtitle { font-size: 18px; }
+            .bento-grid { grid-template-columns: 1fr; }
+
+            .compare-grid.cols-5 { grid-template-columns: repeat(5, 1fr); gap: 3px; }
+            .compare-grid.cols-3 { grid-template-columns: repeat(3, 1fr); gap: 3px; }
+            .method-header { font-size: 0.8rem; padding: 6px 2px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header id="hero-section">
+        <div class="hero-bg-video">
+            <video autoplay muted loop playsinline poster="./figures/teaser.png">
+                <source src="./videos/teaser.mp4" type="video/mp4">
+            </video>
+        </div>
+
+        <div class="hero-content content-wrapper">
+            <div id="rf-branding">
+                <h1 class="project-title">Beyond Distribution Matching</h1>
+            </div>
+            <h2 class="project-subtitle">Self-Supervised Representation Forcing for Few-Step Video Generation</h2>
+
+            <div class="author-list">
+                <a href="#">Junyi Chen</a><sup>1</sup>,
+                <a href="#">Author Two</a><sup>1</sup>,
+                <a href="#">Author Three</a><sup>2</sup>
+            </div>
+
+            <div class="affiliation-list">
+                <p>
+                    <sup>1</sup>Affiliation One,
+                    <sup>2</sup>Affiliation Two
+                </p>
+            </div>
+
+            <div class="cta-buttons">
+                <a class="action-btn" href="#"><i class="fa fa-file"></i> Paper</a>
+                <a class="action-btn" href="#"><i class="fa fa-github"></i> GitHub</a>
+                <a class="action-btn" href="#"><i class="fa fa-youtube"></i> Video</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid">
+
+        <!-- =========================================================
+             SECTION 1: Comparison of 5 methods
+             Each row = one example. Each column = one method.
+             First row = method names.
+             ========================================================= -->
+        <section id="compare-five">
+            <div class="text-center" style="margin-top: 50px;">
+                <div class="section-header">Comparison with 5 Methods</div>
+                <div class="section-desc">
+                    Each column corresponds to one method, and each row corresponds to one example.
+                </div>
+            </div>
+
+            <div class="compare-grid cols-5" data-sync-rows="true" data-cols="5">
+                <!-- ===== Header Row (method names) ===== -->
+                <div class="method-header">Wan</div>
+                <div class="method-header">CausVid</div>
+                <div class="method-header">SF</div>
+                <div class="method-header">CausalForcing</div>
+                <div class="method-header ours">Ours</div>
+
+                <!-- ===== Row 1 ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/1_wan.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/1_cv.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/1_sf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/1_cf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/1_ours.mp4"></video>
+                </figure>
+
+                <!-- ===== Row 2 ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/2_wan.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/2_cv.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/2_sf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/2_cf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/2_ours.mp4"></video>
+                </figure>
+
+                <!-- ===== Row 3 ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/3_wan.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/3_cv.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/3_sf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/3_cf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/3_ours.mp4"></video>
+                </figure>
+
+                <!-- ===== Row 4 ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/4_wan.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/4_cv.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/4_sf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/4_cf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/4_ours.mp4"></video>
+                </figure>
+
+                <!-- ===== Row 5 ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/5_wan.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/5_cv.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/5_sf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/5_cf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/5_ours.mp4"></video>
+                </figure>
+
+                <!-- ===== Row 6 ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/6_wan.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/6_cv.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/6_sf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/6_cf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/6_ours.mp4"></video>
+                </figure>
+
+                <!-- ===== Row 7 ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/7_wan.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/7_cv.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/7_sf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/7_cf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/7_ours.mp4"></video>
+                </figure>
+
+                <!-- ===== Row 8 ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/8_wan.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/8_cv.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/8_sf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/8_cf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/8_ours.mp4"></video>
+                </figure>
+
+                <!-- ===== Row 9 ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/9_wan.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/9_cv.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/9_sf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/9_cf.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec1/9_ours.mp4"></video>
+                </figure>
+            </div>
+        </section>
+
+
+        <!-- =========================================================
+             SECTION 2: Comparison of 3 methods
+             ========================================================= -->
+        <section id="compare-three">
+            <div class="text-center" style="margin-top: 50px;">
+                <div class="section-header">Comparison with 3 Methods</div>
+                <div class="section-desc">
+                    Each column corresponds to one method, and each row corresponds to one example.
+                </div>
+            </div>
+
+            <div class="compare-grid cols-3" data-sync-rows="true" data-cols="3">
+                <!-- ===== Header Row ===== -->
+                <div class="method-header">HunyuanVideo</div>
+                <div class="method-header">DMD2</div>
+                <div class="method-header ours">Ours</div>
+
+                <!-- ===== Row 1 (idx=1) ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/1_hy.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/1_dmd2.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/1_ours.mp4"></video>
+                </figure>
+
+                <!-- ===== Row 2 (idx=3) ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/3_hy.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/3_dmd2.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/3_ours.mp4"></video>
+                </figure>
+
+                <!-- ===== Row 3 (idx=4) ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/4_hy.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/4_dmd2.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/4_ours.mp4"></video>
+                </figure>
+
+                <!-- ===== Row 4 (idx=5) ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/5_hy.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/5_dmd2.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/5_ours.mp4"></video>
+                </figure>
+
+                <!-- ===== Row 5 (idx=6) ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/6_hy.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/6_dmd2.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/6_ours.mp4"></video>
+                </figure>
+
+                <!-- ===== Row 6 (idx=7) ===== -->
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/7_hy.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/7_dmd2.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/7_ours.mp4"></video>
+                </figure>
+
+                <!-- ===== Row 7 (idx=8) ===== -->
+                <!-- <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/8_hy.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/8_dmd2.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/8_ours.mp4"></video>
+                </figure> -->
+
+                <!-- ===== Row 8 (idx=9) ===== -->
+                <!-- <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/9_hy.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/9_dmd2.mp4"></video>
+                </figure>
+                <figure class="rf-card empty">
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/9_ours.mp4"></video>
+                </figure> -->
+            </div>
+        </section>
+
+
+        <!-- =========================================================
+             SECTION 3: Gallery (bento grid, like VINO Video Generation)
+             ========================================================= -->
+        <section id="gallery">
+            <div class="text-center" style="margin-top: 50px;">
+                <div class="section-header">Gallery</div>
+                <div class="section-desc">
+                    A showcase of our generated videos.
+                </div>
+            </div>
+
+            <div class="bento-grid">
+                <!-- 1 (big) -->
+                <figure class="rf-card empty">
+                    <div class="prompt-overlay">Prompt placeholder.</div>
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src=""></video>
+                </figure>
+
+                <!-- 2 -->
+                <figure class="rf-card empty">
+                    <div class="prompt-overlay">Prompt placeholder.</div>
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src=""></video>
+                </figure>
+
+                <!-- 3 -->
+                <figure class="rf-card empty">
+                    <div class="prompt-overlay">Prompt placeholder.</div>
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src=""></video>
+                </figure>
+
+                <!-- 4 -->
+                <figure class="rf-card empty">
+                    <div class="prompt-overlay">Prompt placeholder.</div>
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src=""></video>
+                </figure>
+
+                <!-- 5 -->
+                <figure class="rf-card empty">
+                    <div class="prompt-overlay">Prompt placeholder.</div>
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src=""></video>
+                </figure>
+
+                <!-- 6 (big) -->
+                <figure class="rf-card empty">
+                    <div class="prompt-overlay">Prompt placeholder.</div>
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src=""></video>
+                </figure>
+
+                <!-- 7 (big) -->
+                <figure class="rf-card empty">
+                    <div class="prompt-overlay">Prompt placeholder.</div>
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src=""></video>
+                </figure>
+
+                <!-- 8 -->
+                <figure class="rf-card empty">
+                    <div class="prompt-overlay">Prompt placeholder.</div>
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src=""></video>
+                </figure>
+
+                <!-- 9 -->
+                <figure class="rf-card empty">
+                    <div class="prompt-overlay">Prompt placeholder.</div>
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src=""></video>
+                </figure>
+
+                <!-- 10 -->
+                <figure class="rf-card empty">
+                    <div class="prompt-overlay">Prompt placeholder.</div>
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src=""></video>
+                </figure>
+
+                <!-- 11 -->
+                <figure class="rf-card empty">
+                    <div class="prompt-overlay">Prompt placeholder.</div>
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src=""></video>
+                </figure>
+
+                <!-- 12 (big) -->
+                <figure class="rf-card empty">
+                    <div class="prompt-overlay">Prompt placeholder.</div>
+                    <div class="status-loader">&#9749;</div>
+                    <video class="lazy-load" playsinline muted loop data-src=""></video>
+                </figure>
+            </div>
+        </section>
+
+
+        <footer class="footer-section">
+            <h3 style="margin-top: 40px;">BibTeX</h3>
+            <pre class="code-block">@article{repforcing2026,
+    title={Rep-Forcing},
+    author={Anonymous},
+    journal={arXiv preprint},
+    year={2026}
+}</pre>
+        </footer>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // ---------------------------------------------------------------
+            // 1) Build row-groups for grids that need synchronized playback.
+            //    For a grid with `data-sync-rows="true"` and `data-cols="N"`,
+            //    every N consecutive .rf-card form a row. All videos in the
+            //    same row will only start playing once *every* video in that
+            //    row has finished loading enough data.
+            // ---------------------------------------------------------------
+            const videoToGroup = new Map();   // video element -> group object
+            const allGroups = [];
+
+            document.querySelectorAll('.compare-grid[data-sync-rows="true"]').forEach(grid => {
+                const cols = parseInt(grid.dataset.cols, 10) || 1;
+                const cards = Array.from(grid.querySelectorAll('.rf-card'));
+
+                for (let i = 0; i < cards.length; i += cols) {
+                    const rowCards = cards.slice(i, i + cols);
+                    const rowVideos = rowCards
+                        .map(c => c.querySelector('video.lazy-load, video'))
+                        .filter(Boolean);
+
+                    // Only videos that actually have a data-src need to be
+                    // awaited; empty placeholders are ignored.
+                    const awaited = rowVideos.filter(v => v.dataset && v.dataset.src);
+
+                    const group = {
+                        videos: rowVideos,
+                        awaited,
+                        readyCount: 0,
+                        played: false,
+                    };
+                    allGroups.push(group);
+                    rowVideos.forEach(v => videoToGroup.set(v, group));
+                }
+            });
+
+            function tryPlayGroup(group) {
+                if (group.played) return;
+                if (group.awaited.length === 0) return;
+                if (group.readyCount < group.awaited.length) return;
+
+                group.played = true;
+                // Reset to start so the row is in sync, then play together.
+                group.awaited.forEach(v => {
+                    try { v.currentTime = 0; } catch (e) {}
+                });
+                group.awaited.forEach(v => {
+                    v.play().catch(e => console.log("Autoplay blocked", e));
+                });
+            }
+
+            // ---------------------------------------------------------------
+            // 2) Lazy-load videos via IntersectionObserver.
+            //    Videos inside a sync group: load but DO NOT autoplay; instead
+            //    wait for the whole row to be ready, then play together.
+            //    Other videos (e.g. gallery): load and play immediately.
+            // ---------------------------------------------------------------
+            const targets = document.querySelectorAll(".lazy-load");
+
+            function handleLoaded(video) {
+                const card = video.closest('.rf-card');
+                if (card) {
+                    card.classList.remove('empty');
+                    const loader = card.querySelector('.status-loader');
+                    if (loader) loader.style.display = 'none';
+                }
+                video.style.display = 'block';
+            }
+
+            if ("IntersectionObserver" in window) {
+                const observer = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(entry => {
+                        if (!entry.isIntersecting) return;
+
+                        const video = entry.target;
+                        const source = video.dataset.src;
+
+                        // Skip if no source assigned yet (placeholder)
+                        if (!source) {
+                            obs.unobserve(video);
+                            return;
+                        }
+
+                        const group = videoToGroup.get(video);
+
+                        video.src = source;
+                        Array.from(video.children).forEach(child => {
+                            if (child.tagName === "SOURCE" && child.dataset.src) {
+                                child.src = child.dataset.src;
+                            }
+                        });
+                        video.load();
+
+                        if (group) {
+                            // Synchronized row: keep paused until row is ready.
+                            video.pause();
+                            video.addEventListener('loadeddata', () => {
+                                handleLoaded(video);
+                                group.readyCount += 1;
+                                tryPlayGroup(group);
+                            }, { once: true });
+                        } else {
+                            // Independent video: play as soon as ready.
+                            video.play().catch(e => console.log("Autoplay blocked", e));
+                            video.addEventListener('loadeddata', () => handleLoaded(video), { once: true });
+                        }
+
+                        video.classList.remove("lazy-load");
+                        obs.unobserve(video);
+                    });
+                });
+
+                targets.forEach(t => observer.observe(t));
+            }
+        });
+    </script>
+</body>
+</html>
