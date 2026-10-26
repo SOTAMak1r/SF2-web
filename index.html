@@ -88,9 +88,11 @@
             font-weight: 600;
             z-index: 100;
             min-height: 60px;
+            text-align: center;
         }
 
         .section-desc {
+            text-align: center;
             padding: 0 10% 20px 10%;
             color: #999;
             line-height: 25px;
@@ -101,6 +103,8 @@
         .author-list { margin: 0 auto 25px auto; width: 80%; font-size: 1.4rem; font-weight: 500; }
         .author-item { display: inline-block; margin: 0 10px; }
         .affiliation-list { margin: 0 auto 40px auto; width: 80%; font-size: 16px; }
+        .author-notes { font-size: 14px; color: #999; }
+        .venue { margin: 0 auto 25px auto; font-size: 1.6rem; font-weight: 600; letter-spacing: 1px; }
 
         /* Buttons */
         .action-btn {
@@ -300,23 +304,32 @@
             </div>
             <h2 class="project-subtitle">Self-Supervised Representation Forcing for Few-Step Video Generation</h2>
 
+            <div class="venue">NeurIPS 2026</div>
+
             <div class="author-list">
-                <a href="#">Junyi Chen</a><sup>1</sup>,
-                <a href="#">Author Two</a><sup>1</sup>,
-                <a href="#">Author Three</a><sup>2</sup>
+                <a href="https://sotamak1r.github.io/">Junyi Chen</a><sup>1,*</sup>,
+                <a href="#">Haiyu Zhang</a><sup>2</sup>,
+                <a href="#">Zhoujie Fu</a><sup>3</sup>,
+                <a href="#">Tengfei Wang</a><sup>2,&dagger;</sup>,
+                <a href="#">Chunchao Guo</a><sup>2</sup>
             </div>
 
             <div class="affiliation-list">
                 <p>
-                    <sup>1</sup>Affiliation One,
-                    <sup>2</sup>Affiliation Two
+                    <sup>1</sup>Shanghai Jiao Tong University,
+                    <sup>2</sup>Hunyuan, Tencent,
+                    <sup>3</sup>Nanyang Technological University
+                </p>
+                <p class="author-notes">
+                    <sup>*</sup>Work done during an internship at Hunyuan, Tencent.
+                    <sup>&dagger;</sup>Corresponding author.
                 </p>
             </div>
 
             <div class="cta-buttons">
                 <a class="action-btn" href="#"><i class="fa fa-file"></i> Paper</a>
                 <a class="action-btn" href="#"><i class="fa fa-github"></i> GitHub</a>
-                <a class="action-btn" href="#"><i class="fa fa-youtube"></i> Video</a>
+                <!-- <a class="action-btn" href="#"><i class="fa fa-youtube"></i> Video</a> -->
             </div>
         </div>
     </header>
@@ -577,7 +590,7 @@
                 </figure>
 
                 <!-- ===== Row 2 (idx=3) ===== -->
-                <figure class="rf-card empty">
+                <!-- <figure class="rf-card empty">
                     <div class="status-loader">&#9749;</div>
                     <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/3_hy.mp4"></video>
                 </figure>
@@ -588,7 +601,7 @@
                 <figure class="rf-card empty">
                     <div class="status-loader">&#9749;</div>
                     <video class="lazy-load" playsinline muted loop data-src="./videos/sec2/3_ours.mp4"></video>
-                </figure>
+                </figure> -->
 
                 <!-- ===== Row 3 (idx=4) ===== -->
                 <figure class="rf-card empty">
@@ -677,111 +690,13 @@
         </section>
 
 
-        <!-- =========================================================
-             SECTION 3: Gallery (bento grid, like VINO Video Generation)
-             ========================================================= -->
-        <section id="gallery">
-            <div class="text-center" style="margin-top: 50px;">
-                <div class="section-header">Gallery</div>
-                <div class="section-desc">
-                    A showcase of our generated videos.
-                </div>
-            </div>
-
-            <div class="bento-grid">
-                <!-- 1 (big) -->
-                <figure class="rf-card empty">
-                    <div class="prompt-overlay">Prompt placeholder.</div>
-                    <div class="status-loader">&#9749;</div>
-                    <video class="lazy-load" playsinline muted loop data-src=""></video>
-                </figure>
-
-                <!-- 2 -->
-                <figure class="rf-card empty">
-                    <div class="prompt-overlay">Prompt placeholder.</div>
-                    <div class="status-loader">&#9749;</div>
-                    <video class="lazy-load" playsinline muted loop data-src=""></video>
-                </figure>
-
-                <!-- 3 -->
-                <figure class="rf-card empty">
-                    <div class="prompt-overlay">Prompt placeholder.</div>
-                    <div class="status-loader">&#9749;</div>
-                    <video class="lazy-load" playsinline muted loop data-src=""></video>
-                </figure>
-
-                <!-- 4 -->
-                <figure class="rf-card empty">
-                    <div class="prompt-overlay">Prompt placeholder.</div>
-                    <div class="status-loader">&#9749;</div>
-                    <video class="lazy-load" playsinline muted loop data-src=""></video>
-                </figure>
-
-                <!-- 5 -->
-                <figure class="rf-card empty">
-                    <div class="prompt-overlay">Prompt placeholder.</div>
-                    <div class="status-loader">&#9749;</div>
-                    <video class="lazy-load" playsinline muted loop data-src=""></video>
-                </figure>
-
-                <!-- 6 (big) -->
-                <figure class="rf-card empty">
-                    <div class="prompt-overlay">Prompt placeholder.</div>
-                    <div class="status-loader">&#9749;</div>
-                    <video class="lazy-load" playsinline muted loop data-src=""></video>
-                </figure>
-
-                <!-- 7 (big) -->
-                <figure class="rf-card empty">
-                    <div class="prompt-overlay">Prompt placeholder.</div>
-                    <div class="status-loader">&#9749;</div>
-                    <video class="lazy-load" playsinline muted loop data-src=""></video>
-                </figure>
-
-                <!-- 8 -->
-                <figure class="rf-card empty">
-                    <div class="prompt-overlay">Prompt placeholder.</div>
-                    <div class="status-loader">&#9749;</div>
-                    <video class="lazy-load" playsinline muted loop data-src=""></video>
-                </figure>
-
-                <!-- 9 -->
-                <figure class="rf-card empty">
-                    <div class="prompt-overlay">Prompt placeholder.</div>
-                    <div class="status-loader">&#9749;</div>
-                    <video class="lazy-load" playsinline muted loop data-src=""></video>
-                </figure>
-
-                <!-- 10 -->
-                <figure class="rf-card empty">
-                    <div class="prompt-overlay">Prompt placeholder.</div>
-                    <div class="status-loader">&#9749;</div>
-                    <video class="lazy-load" playsinline muted loop data-src=""></video>
-                </figure>
-
-                <!-- 11 -->
-                <figure class="rf-card empty">
-                    <div class="prompt-overlay">Prompt placeholder.</div>
-                    <div class="status-loader">&#9749;</div>
-                    <video class="lazy-load" playsinline muted loop data-src=""></video>
-                </figure>
-
-                <!-- 12 (big) -->
-                <figure class="rf-card empty">
-                    <div class="prompt-overlay">Prompt placeholder.</div>
-                    <div class="status-loader">&#9749;</div>
-                    <video class="lazy-load" playsinline muted loop data-src=""></video>
-                </figure>
-            </div>
-        </section>
-
-
+        
         <footer class="footer-section">
             <h3 style="margin-top: 40px;">BibTeX</h3>
-            <pre class="code-block">@article{repforcing2026,
-    title={Rep-Forcing},
-    author={Anonymous},
-    journal={arXiv preprint},
+            <pre class="code-block">@inproceedings{chen2026beyond,
+    title={Beyond Distribution Matching: Self-Supervised Flow Forcing for Few-Step Video Generation},
+    author={Chen, Junyi and Zhang, Haiyu and Fu, Zhoujie and Wang, Tengfei and Guo, Chunchao},
+    booktitle={Advances in Neural Information Processing Systems (NeurIPS)},
     year={2026}
 }</pre>
         </footer>
